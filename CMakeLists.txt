@@ -19,7 +19,10 @@ link_directories(${SDL2_DIR}/bin)
 link_directories(${SDL2_NET}/bin)
 
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp 
+                 include/ThreadPool.h
+                 util/ThreadPool.hpp
+                 util/ThreadPool.cpp)
 
 add_executable(PlayBall-Server ${SOURCE_FILES})
 target_link_libraries(PlayBall-Server mingw32 SDL2main SDL2 SDL2_net)
