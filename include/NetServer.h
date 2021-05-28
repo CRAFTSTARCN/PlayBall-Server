@@ -9,6 +9,7 @@
 #define NETSERVER_H
 
 #include "ThreadPool.h"
+#include "UserAgent.h"
 
 #include <SDL2/SDL_net.h>
 
@@ -18,13 +19,13 @@
 class NetServer {
     TCPsocket server_socket;
     IPaddress server_ip_port;
-    std::set<TCPsocket> linked_sockets;
-    std::map<unsigned int, TCPsocket> certified;
-    std::map<unsigned int, TCPsocket> valid;
+    std::map<unsigned int, UserAgent> users;
     
     ThreadPool certification_processor;
     ThreadPool verification_processor;
     ThreadPool task_processor;
+
+    ThreadPool reading_thread;
 };
 
 #endif

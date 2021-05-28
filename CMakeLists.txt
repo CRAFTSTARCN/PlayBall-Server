@@ -23,6 +23,9 @@ link_directories(${SDL2_NET}/bin)
 
 set(SOURCE_FILES main.cpp 
                  include/ThreadPool.h
+                 include/UserAgent.h
+                 include/AbstractMessage.h
+                 include/InterceptorInterface.h
                  include/NetServer.h
                  util/ThreadPool.hpp
                  util/ThreadPool.cpp
