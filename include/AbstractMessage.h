@@ -6,5 +6,22 @@
 #ifndef ABSTRACTMESSAGE_H
 #define ABSTRACTMESSAGE_H
 
+#include "DataObject.h"
+
+class AbstractMessage {
+
+    public:
+    unsigned int sender_id;
+    unsigned int to_id;
+    int version_stamp;
+
+    DataSet* body;
+
+    AbstractMessage();
+    virtual ~AbstractMessage();
+
+    virtual std::string protocolType() const;
+    virtual std::string toText() const;
+};
 
 #endif

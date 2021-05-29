@@ -10,7 +10,7 @@ class InterceptorInterface {
     private:
     public:
 
-    InterceptorInterface(/* args */);
+    InterceptorInterface();
     virtual ~InterceptorInterface();
 
     virtual bool failCertify();

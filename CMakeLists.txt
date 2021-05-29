@@ -25,10 +25,12 @@ set(SOURCE_FILES main.cpp
                  include/ThreadPool.h
                  include/UserAgent.h
                  include/AbstractMessage.h
+                 include/DataObject.h
                  include/InterceptorInterface.h
                  include/NetServer.h
                  util/ThreadPool.hpp
                  util/ThreadPool.cpp
+                 util/DataObject.cpp
                  NetServer/NetServer.cpp)
 
 add_executable(PlayBall-Server ${SOURCE_FILES})
