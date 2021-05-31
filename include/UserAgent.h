@@ -18,12 +18,14 @@ enum UserStatus {
 class UserAgent {
     public:
 
+    unsigned int id;
     TCPsocket socket;
     
     UserStatus user_status;
 
     std::string buffer;
-    std::mutex buffer_access_mutex;
+
+    std::mutex read_access_mutex;
 };
 
 #endif
