@@ -19,14 +19,14 @@
 #include <SDL2/SDL_net.h>
 
 #include "InterceptorInterface.h"
+#include "AbstractMessage.h"
 
-#include <map>
-#include <set>
+#include <vector>
 
 class NetServer {
     TCPsocket server_socket;
     IPaddress server_ip_port;
-    std::map<unsigned int, UserAgent*> users;
+    std::vector<UserAgent*> users;
     
     ThreadPool certification_processor;
     ThreadPool verification_processor;
@@ -38,20 +38,29 @@ class NetServer {
 
     InterceptorInterface* filter;
 
-    std::atomic<int> cur_user_id;
+    std::atomic<unsigned int> cur_user_id;
 
     std::atomic<bool> is_open;
     std::atomic<bool> accept_new;
 
     std::mutex user_access_mutex;
 
+    void appendUser(TCPsocket user_socket);
+
+    std::map<std::string,std::string> headAnalyzer(const std::string& message);
+    void messageProcessor(std::string&& msg, UserAgent* sender);
+    void Certifier(std::string&& msg, UserAgent sender);
+
+    void sendMsg(AbstractMessage* msg);
+
     void Listening();
     void Reading();
+
+
     public:
 
     NetServer(InterceptorInterface* __filter, int cp_num = 1, int vp_num = 2, int tp_num = 2, int sender_num = 1);
     ~NetServer();
-
 
     /*
         start server fucntion
@@ -60,11 +69,20 @@ class NetServer {
     */
     int start(Uint16 port);
 
-    /*stop new socket*/
+    /* stop new socket */
     void stopAcceeption();
 
-    /*shutdown server*/
+    /* shutdown server */
     void shutwdon();
+
+    /* set a user as certified user */
+    void setCertified(int uid);
+
+    /* set a user as a valid user */
+    void setValid(int uid);
+
+    /* push a message to sender thread */
+    void pushMessage(AbstractMessage* msg);
 };
 
 #endif

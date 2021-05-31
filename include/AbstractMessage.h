@@ -20,7 +20,7 @@ class AbstractMessage {
     AbstractMessage();
     virtual ~AbstractMessage();
 
-    virtual std::string protocolType() const;
+    virtual std::string protocolType() const = 0;
     virtual std::string toText() const;
 };
 

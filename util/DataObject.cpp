@@ -11,6 +11,8 @@ DataObject::~DataObject() = default;
 
 DataElement::DataElement() = default;
 
+DataElement::~DataElement() = default;
+
 DataElement::DataElement(std::string __data) : data(std::move(__data)) {}
 
 std::string DataElement::dataType() const {
@@ -18,6 +20,13 @@ std::string DataElement::dataType() const {
 }
 
 DataSet::DataSet() = default;
+
+DataSet::~DataSet() {
+    for(auto& d : data) {
+        delete d.second;
+        d.second = nullptr;
+    }
+}
 
 std::string DataSet::dataType() const {
     return "SET";

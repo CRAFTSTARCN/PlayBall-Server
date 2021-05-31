@@ -14,6 +14,7 @@ NetServer::NetServer(InterceptorInterface* __filter, int cp_num, int vp_num, int
 {
     cur_user_id.store(0);
     is_open.store(false);
+    users.push_back(nullptr);
 }
 
 NetServer::~NetServer() {
@@ -56,6 +57,33 @@ void NetServer::shutwdon() {
     std::unique_lock<std::mutex> last_lock;
     /* send to all */
 
+    certification_processor.forceShutdown();
+    verification_processor.deactivate();
+    task_processor.deactivate();
     sending_thread.deactivate();
     return;
+}
+
+void NetServer::Listening() {
+    TCPsocket n_client_socket;
+    while(accept_new.load()) {
+        n_client_socket = SDLNet_TCP_Accept(server_socket);
+        if(n_client_socket) certification_processor.pushMembTask(appendUser,this,n_client_socket);
+    }
+}
+
+void NetServer::Reading() {
+    while(is_open.load()) {
+        
+    }
+}
+
+void NetServer::appendUser(TCPsocket user_socket) {
+    std::lock_guard<std::mutex> user_access_guard(user_access_mutex);
+    cur_user_id++;
+    UserAgent *n_user = new UserAgent;
+    n_user->id = cur_user_id.load();
+    n_user->socket = user_socket;
+    n_user->user_status = uncertified;
+    users.push_back(n_user);
 }
