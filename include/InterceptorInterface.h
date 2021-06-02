@@ -6,17 +6,19 @@
 #ifndef INTERCEPTORINTERFACE_H
 #define INTERCEPTORINTERFACE_H
 
+#include <SDL2/SDL_net.h>
+
 class InterceptorInterface {
     private:
-    public:
 
+    public:
     InterceptorInterface();
     virtual ~InterceptorInterface();
 
-    virtual bool failCertify();
-    virtual bool failVarify();
+    virtual bool failCertify(TCPsocket);
+    virtual bool failVarify(TCPsocket);
 
-    virtual bool banned();
+    virtual bool banned(TCPsocket);
 };
 
 

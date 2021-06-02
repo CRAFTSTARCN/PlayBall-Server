@@ -26,6 +26,10 @@ class UserAgent {
     std::string buffer;
 
     std::mutex read_access_mutex;
+
+    UserAgent(int __id, TCPsocket __socket);
+    ~UserAgent();
+
 };
 
 #endif

@@ -6,6 +6,11 @@
 #ifndef CALLBACKLISTENER_H
 #define CALLBACKLISTENER_H
 
+class CallbackListener {
+    public:
+    CallbackListener();
+    virtual ~CallbackListener() = 0;
+};
 
     
 #endif
