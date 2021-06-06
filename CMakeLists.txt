@@ -23,6 +23,8 @@ link_directories(${SDL2_NET}/bin)
 
 set(SOURCE_FILES main.cpp 
                  include/ThreadPool.h
+                 include/ExclusiveSharedLock.h
+                 include/StrTool.h
                  include/UserAgent.h
                  include/AbstractMessage.h
                  include/DataObject.h
@@ -33,8 +35,10 @@ set(SOURCE_FILES main.cpp
 
                  util/ThreadPool.hpp
                  util/ThreadPool.cpp
+                 util/ExclusiveSharedLock.cpp
                  util/DataObject.cpp
                  util/CallnackListener.cpp
+                 NetServer/StrTool.cpp
                  NetServer/NetServer.cpp)
 
 add_executable(PlayBall-Server ${SOURCE_FILES})

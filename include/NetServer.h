@@ -11,20 +11,22 @@
 #define HOST_RESOLVE_FAIL 1
 #define OPEN_TCPSOCKET_FAIL 2
 #define SERVER_HAS_BEEN_OPEN -1
+#define PROTOCOL_VERSION 1
 #define OK 0
 
-#define MAX_USER_IN_ONCE 100
+#define MAX_USER_IN_ONCE 64
 #define SERVER_BUFF_SIZE 512
+#define MAX_MESSAGE_LEN 1024
 
 #include "ThreadPool.h"
+#include "ExclusiveSharedLock.h"
 #include "UserAgent.h"
-
-#include <SDL2/SDL_net.h>
-
 #include "InterceptorInterface.h"
 #include "ServerListenerInterface.h"
 #include "UserListenerInterface.h"
 #include "AbstractMessage.h"
+
+#include <SDL2/SDL_net.h>
 
 #include <map>
 
@@ -42,6 +44,7 @@ class NetServer {
     char* buffer;
 
     std::map<unsigned int,UserAgent*> users;
+    std::map<unsigned int,UserBuffer*> user_buffer;
     
     ThreadPool certification_processor;
     ThreadPool verification_processor;
@@ -49,6 +52,7 @@ class NetServer {
 
     ThreadPool main_thread;
     ThreadPool sending_thread;
+    ThreadPool resource_reclamation_thread;
 
     InterceptorInterface* filter;
     ServerListenerInterface* listener;
@@ -60,23 +64,25 @@ class NetServer {
     std::atomic<bool> accept_new;
     std::atomic<bool> change_status;
 
-    std::mutex user_access_mutex;
+    ExclusiveSharedLock user_access_lock;
+    ExclusiveSharedLock buffer_access_lock;
 
     inline void resetBuff();
 
     void appendUser(TCPsocket user_socket);
-    UserIter rmUser(UserIter deleted);
+    void rmUsers(const std::vector<unsigned int>& removed_users);
+    void rmBuffer(int id);
 
     std::map<std::string,std::string> headAnalyzer(const std::string& message);
-    void messageProcessor(std::string&& msg, UserAgent* sender);
-    void Certifier(std::string&& msg, UserAgent sender);
+    void messageProcessor(const std::string& msg, unsigned int id);
+    void Certifier(const std::string& msg, unsigned int id);
 
     void sendMsg(AbstractMessage* msg);
+    void sendStr(const std::string& str, int id);
 
     void Listening();
     void Reading();
     void mainLoop();
-
 
     public:
 
@@ -93,13 +99,12 @@ class NetServer {
              Uint16 port = 8000);
 
     /* stop new socket */
-    void stopAcceeption();
+    void stopAccept();
+
+    void stopVerify();
 
     /* shutdown server */
     void shutwdon();
-
-    /* set a user as certified user */
-    void setCertified(int uid);
 
     /* set a user as a valid user */
     void setValid(int uid);
@@ -107,11 +112,6 @@ class NetServer {
     /* push a message to sender thread */
     void pushMessage(AbstractMessage* msg);
 
-    /*
-        set max new user one each loop 
-        default 128
-    */
-    void setMaxNewUserOnce(int num);
 };
 
 #endif

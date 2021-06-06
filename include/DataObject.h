@@ -16,7 +16,7 @@ class DataObject {
     virtual ~DataObject();
 
     virtual std::string dataType() const = 0;
-
+    virtual std::string toString() const = 0;
 };
 
 class DataElement final : public DataObject  {
@@ -29,6 +29,7 @@ class DataElement final : public DataObject  {
     ~DataElement();
 
     std::string dataType() const;
+    std::string toString() const;
 };
 
 
@@ -44,7 +45,7 @@ class DataSet final : public DataObject {
     ~DataSet();
 
     std::string dataType() const;
-
+    std::string toString() const;
 };
 
 #endif

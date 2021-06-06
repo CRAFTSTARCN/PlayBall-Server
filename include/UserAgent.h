@@ -23,13 +23,16 @@ class UserAgent {
     
     UserStatus user_status;
 
-    std::string buffer;
-
-    std::mutex read_access_mutex;
-
     UserAgent(int __id, TCPsocket __socket);
     ~UserAgent();
 
+};
+
+class UserBuffer {
+    public:
+
+    std::string buffer;
+    std::mutex buffer_lock;
 };
 
 #endif

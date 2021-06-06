@@ -19,6 +19,10 @@ std::string DataElement::dataType() const {
     return "ELEMENT";
 }
 
+std::string DataElement::toString() const {
+    return data;
+}
+
 DataSet::DataSet() = default;
 
 DataSet::~DataSet() {
@@ -30,6 +34,15 @@ DataSet::~DataSet() {
 
 std::string DataSet::dataType() const {
     return "SET";
+}
+
+std::string DataSet::toString() const {
+    std::string res;
+    for(auto &d : data) {
+        res.append("<" + d.first + ">");
+        res.append(d.second->toString());
+        res.append("</" + d.first + ">");
+    }
 }
 
 void DataSet::push(std::string key, DataObject* val) {
