@@ -88,7 +88,7 @@ PlayBall game server side, by cpp , based on SDL_net socket
 ```
 |名称|内容|
 |:-:|:-:|
-|id|发送者id|
+|id|发送者id，特殊的，初次向服务器索取ID时置为-1|
 |version|协议版本，数字|
 |protocolType|上层协议类型，无特殊字符的字符串|  
 
