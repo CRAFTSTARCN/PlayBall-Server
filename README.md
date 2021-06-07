@@ -88,8 +88,48 @@ PlayBall game server side, by cpp , based on SDL_net socket
 ```
 |名称|内容|
 |:-:|:-:|
-|id|发送者id，特殊的，初次向服务器索取ID时置为-1|
+|id|发送者id，特殊的，初次向服务器索取ID时置为-1，<br>若发向客户端，则为接收用户的id|
 |version|协议版本，数字|
 |protocolType|上层协议类型，无特殊字符的字符串|  
 
 head内容中出现的空格、Tab、换行将被直接忽略，而<>将被视为标签开始与结束符（产生错误）
+
+## 通信建立流程
+
+TCP连接建立后，应客户端应立即向服务器发送一个确认服务报文，格式如下
+```
+<msg>
+    <head>
+        <id>-1<\id>
+        <version>{service_version}<\version>
+        <protocolType>certification<\protocolType>
+    <\head>
+<\msg>
+```
+这是一个确认服务报文，-1是为了索取此客户在服务端的id，上层协议位certification，version为服务版本  
+客户端可能接收到两种回复  
+**第一种，服务生效**
+```
+<msg>
+    <head>
+        <id>{id}<\id>
+        <version>{service_version}<\version>
+        <protocolType>ACK<\protocolType>
+    <\head>
+<\msg>
+```
+id字段中的内容即为用户的id，后面发送报文时id字段应设置为此
+**第二种，版本错误**
+```
+<msg>
+    <head>
+        <id>-1<\id>
+        <version>{right_service_version}<\version>
+        <protocolType>REJ<\protocolType>
+    <\head>
+    <content>
+        <reason>Wrong_Version<\reason>
+    <\content>
+<\msg>
+```
+version字段将回复正确的版本号，id字段将为-1，此时客户端应切换正确版本进行通信
