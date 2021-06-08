@@ -43,6 +43,7 @@ std::string DataSet::toString() const {
         res.append(d.second->toString());
         res.append("</" + d.first + ">");
     }
+    return res;
 }
 
 void DataSet::push(std::string key, DataObject* val) {

@@ -3,6 +3,7 @@
     By: Ag2S
 */
 
+#include "ServiceInfo.h"
 #include "NetServer.h"
 #include "StrTool.h"
 
@@ -15,7 +16,7 @@ NetServer::NetServer( int cp_num, int vp_num, int tp_num, int sender_num) :
     main_thread(1),sending_thread(sender_num),
     resource_reclamation_thread(1)
 {
-    cur_user_id.store(0);
+    cur_user_id = 0;
     is_open.store(false);
     set_for_server = nullptr;
     set_for_users = nullptr;
@@ -50,6 +51,7 @@ int NetServer::start(ServerListenerInterface* __listener, UserListenerInterface*
 
     is_open.store(1);
     accept_new.store(1);
+    is_verifying.store(1);
 
     main_thread.pushMembTask(mainLoop,this);
     return OK;
@@ -57,9 +59,7 @@ int NetServer::start(ServerListenerInterface* __listener, UserListenerInterface*
 
 void NetServer::stopAccept() {
     if(!accept_new.load());
-
     accept_new.store(false);
-
     return;
 }
 
@@ -77,18 +77,18 @@ void NetServer::Listening() {
                 appendUser(n_user);
             }
             user_access_lock.ExclusiveLock();
-            change_status.store(true);
+            change_status = true;
         }
     }
 }
 
 void NetServer::Reading() {
     user_access_lock.SharedLock();
-    if(change_status.load()) {
+    if(change_status) {
         if(set_for_users) SDLNet_FreeSocketSet(set_for_users);
         set_for_users = SDLNet_AllocSocketSet(users.size());
         for(auto& u : users) SDLNet_TCP_AddSocket(set_for_users,u.second->socket);
-        change_status.store(false);
+        change_status = false;
     }
     resetBuff();
     std::vector<unsigned int> removed_users;
@@ -104,17 +104,8 @@ void NetServer::Reading() {
                     this,
                     std::move(std::string(buffer,got_len)),
                     u_itrer->second->id);
-                } else if(u_itrer->second->user_status == certified) {
-                    verification_processor.pushMembTask(
-                        messageProcessor,
-                        this,
-                        std::move(std::string(buffer,got_len)),
-                        u_itrer->second->id);
                 } else {
-                    certification_processor.pushMembTask(Certifier,
-                    this,
-                    std::move(std::string(buffer,got_len)),
-                    u_itrer->second->id);
+                    messageProcessor(std::string(buffer),u_itrer->second);
                 }
                 resetBuff();
                 u_itrer++;
@@ -123,7 +114,7 @@ void NetServer::Reading() {
                     user_listener->UserQuit(u_itrer->second->id);
                 }
                 removed_users.push_back(u_itrer->second->id);
-                change_status.store(true);
+                change_status = true;
             }
         } else {
             u_itrer++;
@@ -134,7 +125,7 @@ void NetServer::Reading() {
 }
 
 void NetServer::mainLoop() {
-    change_status.store(true);
+    change_status = true;
     while(is_open.load()) {
         Listening();
         Reading();
@@ -150,8 +141,8 @@ inline void NetServer::resetBuff() {
 void NetServer::appendUser(TCPsocket user_socket) {
     if(filter->banned(user_socket)) return;
     cur_user_id++;
-    UserAgent *n_user = new UserAgent(cur_user_id.load(),user_socket);
-    users.emplace(cur_user_id.load(),n_user);
+    UserAgent *n_user = new UserAgent(cur_user_id,user_socket);
+    users.emplace(cur_user_id,n_user);
 }
 
 void NetServer::rmUsers(const std::vector<unsigned int>& removed_users) {
@@ -159,9 +150,6 @@ void NetServer::rmUsers(const std::vector<unsigned int>& removed_users) {
     for(auto id : removed_users) {
         UserIter it = users.find(id);
         if(it != users.end()) {
-            if(it->second->user_status != uncertified) {
-                resource_reclamation_thread.pushMembTask(rmBuffer,this,id);
-            }
             delete it->second;
             users.erase(it);
         }
@@ -169,11 +157,10 @@ void NetServer::rmUsers(const std::vector<unsigned int>& removed_users) {
     user_access_lock.ExclusiveUnlock();
 }
 
-
 std::map<std::string,std::string> NetServer::headAnalyzer(const std::string& message) {
     std::map<std::string,std::string> ept,head_info;
     int beg = message.find("<head>"), end = message.find("</head>");
-    if(end == -1 || end == -1) return ept;
+    if(beg == -1 || end == -1 || end < beg) return ept;
     std::string cur_label;
     std::string cur_content;
     std::string temp;
@@ -220,25 +207,88 @@ std::map<std::string,std::string> NetServer::headAnalyzer(const std::string& mes
     return head_info;
 }
 
+
+std::vector<std::string>  NetServer::cut(const std::string& str, int& vis) {
+    std::vector<std::string> msgs;
+    int st = str.find("<msg>"),ed;
+    if(st == -1) {
+        vis = 1;
+        msgs.push_back(str);
+        return msgs;
+    }
+    if(st != 0) {
+        msgs.push_back(str.substr(0,st));
+        vis = 1;
+    }
+    ed = str.find("</msg>",st + 5);
+    while(st != -1) {
+        ed = str.find("</msg>",st);
+        if(ed != -1) msgs.push_back(str.substr(st,ed+6-st));
+        else break;
+        st = str.find("<msg>",ed+1);
+    }
+    if(st < str.length()) { 
+        msgs.push_back(str.substr(st));
+        vis += 2;
+    }
+    return msgs;
+}
+
 void NetServer::Certifier(const std::string& msg, unsigned int id) {
     auto head_info =  headAnalyzer(msg);
-    if(head_info["id"] != std::to_string(id)) return;
+    if(head_info["id"] != "-1") return;
     if(head_info["version"] != std::to_string(PROTOCOL_VERSION)) {
         sending_thread.pushMembTask(sendStr,this,std::string(""),id); // tobe done
         return;
     }
     if(head_info["protocolType"] == "certification") {
+      
+        UserBuffer* n_buffer = new UserBuffer;
         user_access_lock.SharedLock();
         auto user = users.find(id);
-        if(user == users.end()) return;
+        if(user == users.end()) {
+            user_access_lock.SharedUnlock();
+            return;
+        }
+        user->second->buffer = new std::string;
         user->second->user_status = certified;
         user_access_lock.SharedUnlock();
 
-        UserBuffer* n_buffer = new UserBuffer;
-        buffer_access_lock.ExclusiveLock();
-        user_buffer.emplace(cur_user_id.load(),n_buffer);
-        buffer_access_lock.ExclusiveUnlock();
         user_listener->UserCertified(id);
     }
     return;
+}
+
+void NetServer::messageProcessor(const std::string& msg, UserAgent* user) {
+    int vis = 0;
+    auto msgs = cut(msg,vis);
+    if(vis) {
+        if(vis & 1) {
+            msgs[0];
+        } else if(vis >= 2) {
+
+        }
+    }
+    for(auto &msg : msgs) {
+        auto head_info = headAnalyzer(msg);
+        if(head_info["id"] != std::to_string(user->id)) {
+            //send id not fit
+            continue;
+        }
+        if(head_info["version"] != std::to_string(PROTOCOL_VERSION)){
+            //send version not fit
+            continue;
+        }
+        int begc = msg.find("<content>"), edc = msg.find('</content>');
+        if(begc == -1 || edc == -1 || edc < begc) continue;
+    
+        std::string content = msg.substr(9,edc-begc-9);
+        if(user->user_status == valid) 
+            task_processor.pushMembTask(ServerListenerInterface::onEmitMessage,
+                listener,user->id,PROTOCOL_VERSION,
+                std::move(head_info["protocolType"]),std::move(content));
+        else verification_processor.pushMembTask(ServerListenerInterface::onEmitMessage,
+                listener,user->id,PROTOCOL_VERSION,
+                std::move(head_info["protocolType"]),std::move(content));
+    }
 }

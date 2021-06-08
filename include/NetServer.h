@@ -8,16 +8,6 @@
 #ifndef NETSERVER_H
 #define NETSERVER_H
 
-#define HOST_RESOLVE_FAIL 1
-#define OPEN_TCPSOCKET_FAIL 2
-#define SERVER_HAS_BEEN_OPEN -1
-#define PROTOCOL_VERSION 1
-#define OK 0
-
-#define MAX_USER_IN_ONCE 64
-#define SERVER_BUFF_SIZE 512
-#define MAX_MESSAGE_LEN 1024
-
 #include "ThreadPool.h"
 #include "ExclusiveSharedLock.h"
 #include "UserAgent.h"
@@ -44,7 +34,6 @@ class NetServer {
     char* buffer;
 
     std::map<unsigned int,UserAgent*> users;
-    std::map<unsigned int,UserBuffer*> user_buffer;
     
     ThreadPool certification_processor;
     ThreadPool verification_processor;
@@ -58,23 +47,23 @@ class NetServer {
     ServerListenerInterface* listener;
     UserListenerInterface* user_listener;
 
-    std::atomic<unsigned int> cur_user_id;
+    unsigned int cur_user_id;
 
     std::atomic<bool> is_open;
     std::atomic<bool> accept_new;
-    std::atomic<bool> change_status;
+    std::atomic<bool> is_verifying;
+    bool change_status;
 
     ExclusiveSharedLock user_access_lock;
-    ExclusiveSharedLock buffer_access_lock;
 
     inline void resetBuff();
 
     void appendUser(TCPsocket user_socket);
     void rmUsers(const std::vector<unsigned int>& removed_users);
-    void rmBuffer(int id);
 
+    std::vector<std::string> cut(const std::string& msg, int& vis);
     std::map<std::string,std::string> headAnalyzer(const std::string& message);
-    void messageProcessor(const std::string& msg, unsigned int id);
+    void messageProcessor(const std::string& msg, UserAgent* user);
     void Certifier(const std::string& msg, unsigned int id);
 
     void sendMsg(AbstractMessage* msg);

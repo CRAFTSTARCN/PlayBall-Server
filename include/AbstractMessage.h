@@ -15,9 +15,10 @@ class AbstractMessage {
     unsigned int to_id;
     int version_stamp;
 
-    DataSet* body;
+    DataObject* content;
 
     AbstractMessage();
+    AbstractMessage(DataObject* __content);
     virtual ~AbstractMessage();
 
     virtual std::string protocolType() const = 0;

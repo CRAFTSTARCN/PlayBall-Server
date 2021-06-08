@@ -20,19 +20,13 @@ class UserAgent {
 
     unsigned int id;
     TCPsocket socket;
+    std::string* buffer;
     
     UserStatus user_status;
 
-    UserAgent(int __id, TCPsocket __socket);
+    UserAgent(unsigned int __id, TCPsocket __socket);
     ~UserAgent();
 
-};
-
-class UserBuffer {
-    public:
-
-    std::string buffer;
-    std::mutex buffer_lock;
 };
 
 #endif
