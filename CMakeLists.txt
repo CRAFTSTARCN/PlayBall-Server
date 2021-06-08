@@ -29,10 +29,12 @@ set(SOURCE_FILES main.cpp
                  include/UserAgent.h
                  include/AbstractMessage.h
                  include/DataObject.h
-                 include/InterceptorInterface.h
                  include/ServerListenerInterface.h
                  include/UserListenerInterface.h
                  include/NetServer.h
+                 include/MessageParser.h
+                 include/MessageListenerInterface.h
+                 include/MessageParseLayer.h
 
                  util/ThreadPool.hpp
                  util/ThreadPool.cpp
@@ -42,6 +44,7 @@ set(SOURCE_FILES main.cpp
                  NetServer/StrTool.cpp
                  NetServer/AbstractMessage.cpp
                  NetServer/UserAgent.cpp
+                 NetServer/ServerSideListenerInterfaces.cpp
                  NetServer/NetServer.cpp)
 
 add_executable(PlayBall-Server ${SOURCE_FILES})

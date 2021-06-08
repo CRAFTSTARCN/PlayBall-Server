@@ -11,7 +11,6 @@
 #include "ThreadPool.h"
 #include "ExclusiveSharedLock.h"
 #include "UserAgent.h"
-#include "InterceptorInterface.h"
 #include "ServerListenerInterface.h"
 #include "UserListenerInterface.h"
 #include "AbstractMessage.h"
@@ -43,7 +42,6 @@ class NetServer {
     ThreadPool sending_thread;
     ThreadPool resource_reclamation_thread;
 
-    InterceptorInterface* filter;
     ServerListenerInterface* listener;
     UserListenerInterface* user_listener;
 
@@ -52,6 +50,8 @@ class NetServer {
     std::atomic<bool> is_open;
     std::atomic<bool> accept_new;
     std::atomic<bool> is_verifying;
+    std::atomic<bool> is_certifying;
+
     bool change_status;
 
     ExclusiveSharedLock user_access_lock;
@@ -84,12 +84,15 @@ class NetServer {
         Should be called when server down and after SDL_NET initialized
     */
     int start(ServerListenerInterface* __listener, UserListenerInterface* __u_listener ,
-             InterceptorInterface* __filter, 
              Uint16 port = 8000);
 
     /* stop new socket */
     void stopAccept();
 
+    /* stop certify new connected user */
+    void stopCertify();
+
+    /* stop verify certified users */
     void stopVerify();
 
     /* shutdown server */
