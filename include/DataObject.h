@@ -32,7 +32,6 @@ class DataElement final : public DataObject  {
     std::string toString() const;
 };
 
-
 class DataSet final : public DataObject {
 
     using m_key =  std::string;

@@ -19,7 +19,7 @@ class MessageParser {
 
 public:
 
-    static DataObject* generalStrParser(const std::string str, int st);
+    static DataObject* generalStrParser(const std::string str, int& st);
 
     virtual AbstractMessage* parse(unsigned int sender,int v_stamp, 
                                 const std::string& content) const = 0;

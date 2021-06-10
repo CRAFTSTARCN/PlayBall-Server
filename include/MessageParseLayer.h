@@ -24,7 +24,7 @@ class MessageParseLayer {
 
     public:
     
-    MessageParseLayer();
+    MessageParseLayer(MessageListenerInterFace* __listener);
     ~MessageParseLayer();
 
     /* Process str, emit message to upper layer */
