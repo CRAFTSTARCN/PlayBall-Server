@@ -133,3 +133,125 @@ id字段中的内容即为用户的id，后面发送报文时id字段应设置�
 <\msg>
 ```
 version字段将回复正确的版本号，id字段将为-1，此时客户端应切换正确版本进行通信
+
+## 通用服务报文
+除了上面的服务生效，版本错误等，还会产生下面的通用服务报文
+```
+/*略去开始和结束标签*/
+<head>
+    <id>{id}</id>
+    <version>{version}</version>
+    <protocolType>ACK</protocolType>
+</head>
+<content>
+    <joinserver>valid<joinserver>
+</content>
+```
+此报文用于告知用户，其已经成为合法（valid）用户，如果服务器带有合法用户验证（如密码等），此报文应使用在用户确认密码之后，而没有密码，则服务端应在用户认证成功后立即发送
+
+```
+<head>
+    <id>{id}</id>
+    <version>{version}</version>
+    <protocolType>REJ</protocolType>
+</head>
+<content>
+    <reason>Wrong_Id</reason>
+</content>
+```
+在用户成功确认服务后，若发送来的报文出现id错误情况，应回复此拒绝报文
+
+```
+<head>
+    <id>{id}</id>
+    <version>{version}</version>
+    <protocolType>REJ</protocolType>
+</head>
+<content>
+    <reason>Parse_Error</reason>
+</content>
+```
+在解析报文内容（content）时出错应回复，但位可选  
+如果在上层发现报文内容有误，应发送一个该协议的报文回复给，并在content内解析
+
+**以上报文内容均由服务器发送**
+
+## GTP(Game Transport Protocol) 报文
+
+仅描述在content内的内容
+### 创建游戏
+```
+<option>CREATE</option>
+```
+创建成功后，客户端会收到一个回复，成功/失败
+```
+<option>CREATE</option>
+<success>{gameid/-1}</success>
+```
+```success```标签中>=0为成功，返回游戏房间id，-1为失败
+
+### 加入游戏
+```
+<option>JOIN</option>
+<room>{room_id}</room>
+```
+发送后有两个结果，成功/失败
+```
+<option>JOIN</option>
+<room>{room_id/-1}</room>
+```
+```room```标签中>=0表示成功，-1失败  
+同时向所有同房间用户（除它自己）有发送
+```
+<option>UJOIN<option>
+<playerid>{id}<playerid>
+```
+
+### 退出游戏
+
+```
+<option>QUIT</option>
+```
+发送后应等待，知道收到应答
+```
+<option>QUIT</option>
+```
+这表示，你已经不属于任何房间了  
+同时向同房间用户发送
+```
+<option>UQUIT<option>
+<playerid>{id}<playerid>
+```
+
+### 更新关键帧
+```
+<option>UPDATE</option>
+<NoParse>
+posx1:1;;;
+posxy:2;;;
+speedx1:1;;;
+speedy1:1;;;
+what:BULLET/PLAYER;;;
+hp1:1;;;
+playerid1:{id};;;
+</NoParse>
+.....
+```
+由房间创建者发送向所有普通用户
+由于只是转发，所以NoParse里的东西时纯文本（各种意义上）故不会被解析
+
+### 用户操作
+```
+<option>OPERATE<option>
+<NoParse>
+movex:114;;;
+movey:514;;;
+shootx:191;;
+shooty:981;;;
+</NoParse>
+```
+
+由普通用户发送，转发至房主
+
+### 房主退出
+To be continue...
