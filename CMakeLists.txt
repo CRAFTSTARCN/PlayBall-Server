@@ -37,19 +37,38 @@ set(SOURCE_FILES main.cpp
                  include/MessageListenerInterface.h
                  include/MessageParseLayer.h
                  include/GTPParser.h
+                 include/Room.h
+                 include/Player.h
+                 include/Game.h
+                 include/ServerListener.h
+                 include/UserListener.h
+                 include/MessageListener.h
+                 include/ACKMessage.h
 
                  util/ThreadPool.hpp
                  util/ThreadPool.cpp
                  util/ExclusiveSharedLock.cpp
                  util/DataObject.cpp
                  util/CallnackListener.cpp
+
                  NetServer/StrTool.cpp
                  NetServer/AbstractMessage.cpp
                  NetServer/UserAgent.cpp
                  NetServer/ServerSideListenerInterfaces.cpp
+                 NetServer/MessageListenerInterface.cpp
                  NetServer/NetServer.cpp
                  NetServer/Messages/GTPMessage.cpp
-                 NetServer/MessageParseLayer.cpp)
+                 NetServer/Messages/ACKMessage.cpp
+                 NetServer/MessageParseLayer.cpp
+                 NetServer/Parsers/GTPParser.cpp
+                 NetServer/ServerListener.cpp
+                 NetServer/MessageParser.cpp
+                 
+                 Game/Player.cpp
+                 Game/Room.cpp
+                 Game/Game.cpp
+                 Game/UserListener.cpp
+                 Game/MessageListener.cpp)
 
 add_executable(PlayBall-Server ${SOURCE_FILES})
 target_link_libraries(PlayBall-Server mingw32 SDL2main SDL2 SDL2_net)

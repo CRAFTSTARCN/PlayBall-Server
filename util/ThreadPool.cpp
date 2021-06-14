@@ -46,7 +46,7 @@ void ThreadPool::deactivate() {
 }
 
 void ThreadPool::forceShutdown() {
-    std::unique_lock<std::mutex> drop_task_lock;
+    std::unique_lock<std::mutex> drop_task_lock(task_access_mutex);
     while(!task_queue.empty()) task_queue.pop();
     drop_task_lock.unlock();
     deactivate();

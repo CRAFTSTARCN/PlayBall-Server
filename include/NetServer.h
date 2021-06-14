@@ -99,7 +99,7 @@ class NetServer {
     void shutwdon();
 
     /* set a user as a valid user */
-    void setValid(int uid);
+    void setValid(unsigned int uid);
 
     /* push a message to sender thread */
     void pushMessage(AbstractMessage* msg);

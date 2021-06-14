@@ -6,6 +6,8 @@
 #include "ServiceInfo.h"
 #include "NetServer.h"
 #include "StrTool.h"
+#include "ACKMessage.h"
+#include "iostream"
 
 #include <sstream>
 
@@ -53,6 +55,7 @@ int NetServer::start(ServerListenerInterface* __listener, UserListenerInterface*
     is_certifying.store(1);
 
     main_thread.pushMembTask(mainLoop,this);
+    std::cout<<"NetServer start"<<std::endl;
     return OK;
 }
 
@@ -74,6 +77,7 @@ void NetServer::shutwdon() {
     task_processor.deactivate();
     sending_thread.deactivate();
     main_thread.deactivate();
+    delete buffer;
 
     return;
 }
@@ -86,8 +90,9 @@ void NetServer::Listening() {
             user_access_lock.ExclusiveLock();
             for(int i=0; i < MAX_USER_IN_ONCE && (n_user = SDLNet_TCP_Accept(server_socket)) != nullptr; ++i ) {
                 appendUser(n_user);
+                std::cout<<"New user arrive"<<std::endl;
             }
-            user_access_lock.ExclusiveLock();
+            user_access_lock.ExclusiveUnlock();
             change_status = true;
         }
     }
@@ -110,10 +115,10 @@ void NetServer::Reading() {
             int got_len = 0;
             if( (got_len = SDLNet_TCP_Recv(u_itrer->second->socket,buffer,SERVER_BUFF_SIZE)) > 0) {
                 if(u_itrer->second->user_status == uncertified && is_certifying.load()) {
-                    task_processor.pushMembTask(
+                    certification_processor.pushMembTask(
                     Certifier,
                     this,
-                    std::move(std::string(buffer,got_len)),
+                    std::string(buffer,got_len),
                     u_itrer->second->id);
                 } else {
                     messageProcessor(std::string(buffer,got_len),u_itrer->second);
@@ -174,7 +179,7 @@ std::map<std::string,std::string> NetServer::headAnalyzer(const std::string& mes
     std::string cur_label;
     std::string cur_content;
     std::string temp;
-    bool in_angle_brackets;
+    bool in_angle_brackets = false;
 
     for(int i = beg + 6; i != end; ++i) {
         char c = message[i];
@@ -261,6 +266,8 @@ void NetServer::Certifier(const std::string& msg, unsigned int id) {
         }
         user->second->buffer = new std::string;
         user->second->user_status = certified;
+        std::string ack = ACKMessage::ACK(id);
+        SDLNet_TCP_Send(user->second->socket,ack.c_str(),ack.length());
         user_access_lock.SharedUnlock();
 
         user_listener->UserCertified(id);
@@ -302,7 +309,7 @@ void NetServer::messageProcessor(const std::string& msg, UserAgent* user) {
         int begc = msgs[i].find("<content>"), edc = msgs[i].find("</content>");
         if(begc == -1 || edc == -1 || edc < begc) continue;
     
-        std::string content = msgs[i].substr(9,edc-begc-9);
+        std::string content = msgs[i].substr(begc+9,edc-begc-9);
         if(user->user_status == valid) task_processor.pushMembTask(ServerListenerInterface::onEmitMessage,
                 listener,user->id,PROTOCOL_VERSION,
                 std::move(head_info["protocolType"]),std::move(content));
@@ -315,6 +322,7 @@ void NetServer::messageProcessor(const std::string& msg, UserAgent* user) {
 void NetServer::sendMsg(AbstractMessage* msg) {
     std::string text = msg->toText();
     sendStr(text,msg->to_id);
+    delete msg;
 }
 
 void NetServer::sendStr(const std::string& str, int id) {
@@ -331,7 +339,6 @@ void NetServer::stopAccept() {
         accept_new.store(false);
     return;
 }
-
 
 void NetServer::stopCertify() {
     if(!is_certifying.load()) return;
@@ -352,7 +359,7 @@ void NetServer::stopVerify() {
     verification_processor.deactivate();
 }
 
-void NetServer::setValid(int id) {
+void NetServer::setValid(unsigned int id) {
     user_access_lock.SharedLock();
     auto user_it = users.find(id);
     if(user_it == users.end()) {

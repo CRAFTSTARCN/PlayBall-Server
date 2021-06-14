@@ -20,3 +20,7 @@ bool StrTool::validLabelContent(char c) {
     || ('1' <= c && c <= '9')
     || c == '_';
 }
+
+bool StrTool::isSkippedChar(char c) {
+    return c=='\t' || c=='\n' || c==' ';
+}

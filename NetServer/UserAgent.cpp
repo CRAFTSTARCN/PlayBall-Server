@@ -6,7 +6,7 @@
 #include "UserAgent.h"
 
 UserAgent::UserAgent(unsigned int __id, TCPsocket __socket) :
-    id(__id), socket(__socket),buffer(nullptr)
+    id(__id), socket(__socket),buffer(nullptr),user_status(uncertified)
 {}
 
 UserAgent::~UserAgent() {

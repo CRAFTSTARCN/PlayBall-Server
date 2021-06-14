@@ -12,6 +12,7 @@ class StrTool {
     public:
     static bool eqLabel(const std::string& s, const std::string& e);
     static bool validLabelContent(char c);
+    static bool isSkippedChar(char c);
 };
 
 #endif

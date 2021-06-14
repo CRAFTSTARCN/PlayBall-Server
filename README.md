@@ -100,11 +100,11 @@ TCP连接建立后，应客户端应立即向服务器发送一个确认服务�
 ```
 <msg>
     <head>
-        <id>-1<\id>
-        <version>{service_version}<\version>
-        <protocolType>certification<\protocolType>
-    <\head>
-<\msg>
+        <id>-1</id>
+        <version>{service_version}</version>
+        <protocolType>certification</protocolType>
+    </head>
+</msg>
 ```
 这是一个确认服务报文，-1是为了索取此客户在服务端的id，上层协议位certification，version为服务版本  
 客户端可能接收到两种回复  
@@ -112,25 +112,25 @@ TCP连接建立后，应客户端应立即向服务器发送一个确认服务�
 ```
 <msg>
     <head>
-        <id>{id}<\id>
-        <version>{service_version}<\version>
-        <protocolType>ACK<\protocolType>
-    <\head>
-<\msg>
+        <id>{id}</id>
+        <version>{service_version}</version>
+        <protocolType>ACK</protocolType>
+    </head>
+</msg>
 ```
 id字段中的内容即为用户的id，后面发送报文时id字段应设置为此
 **第二种，版本错误**
 ```
 <msg>
     <head>
-        <id>-1<\id>
-        <version>{right_service_version}<\version>
-        <protocolType>REJ<\protocolType>
-    <\head>
+        <id>-1</id>
+        <version>{right_service_version}</version>
+        <protocolType>REJ</protocolType>
+    </head>
     <content>
-        <reason>Wrong_Version<\reason>
-    <\content>
-<\msg>
+        <reason>Wrong_Version</reason>
+    </content>
+</msg>
 ```
 version字段将回复正确的版本号，id字段将为-1，此时客户端应切换正确版本进行通信
 
@@ -244,6 +244,7 @@ playerid1:{id};;;
 ```
 <option>OPERATE<option>
 <NoParse>
+id:1;;;
 movex:114;;;
 movey:514;;;
 shootx:191;;
@@ -254,4 +255,4 @@ shooty:981;;;
 由普通用户发送，转发至房主
 
 ### 房主退出
-To be continue...
+房主退出，就地解散

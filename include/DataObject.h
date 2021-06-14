@@ -17,6 +17,7 @@ class DataObject {
 
     virtual std::string dataType() const = 0;
     virtual std::string toString() const = 0;
+    virtual DataObject* SafeCopy() const = 0;
 };
 
 class DataElement final : public DataObject  {
@@ -30,21 +31,24 @@ class DataElement final : public DataObject  {
 
     std::string dataType() const;
     std::string toString() const;
+    DataObject* SafeCopy() const;
 };
 
 class DataSet final : public DataObject {
 
-    using m_key =  std::string;
+    using m_key = std::string;
 
     public:
     std::map<m_key,DataObject*> data;
     void push(m_key key, DataObject* val);
+    DataObject* find(const std::string& key);
 
     DataSet();
     ~DataSet();
 
     std::string dataType() const;
     std::string toString() const;
+    DataObject* SafeCopy() const;
 };
 
 #endif

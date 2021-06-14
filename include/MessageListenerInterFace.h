@@ -9,10 +9,13 @@
 #include "CallbackListener.h"
 #include "AbstractMessage.h"
 
-class MessageListenerInterFace : public CallbackListener {
+class MessageListenerInterface : public CallbackListener {
 
     public:
-    virtual void onEmitMessage(AbstractMessage* msg);
+    MessageListenerInterface();
+    ~MessageListenerInterface();
+
+    virtual void onEmitMessage(AbstractMessage* msg) = 0;
 };
 
 #endif

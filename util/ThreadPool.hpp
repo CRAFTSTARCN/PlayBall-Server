@@ -15,6 +15,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <future>
+#include <exception>
 
 class ThreadPool {
     public:
@@ -49,7 +50,7 @@ class ThreadPool {
     template<typename F, typename... Args>
     auto pushTask(F && task, Args &&... args) -> std::future<decltype(task(args...))>  {
         if(!open.load()) {
-            /* throw exception */
+            throw std::runtime_error("push to inactive thread");
         }
 
         auto new_task = std::make_shared<std::packaged_task<decltype(task(args...))()>>(

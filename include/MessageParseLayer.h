@@ -7,7 +7,7 @@
 #define MESSAGEPARSELAYER_H
 
 #include "MessageParser.h"
-#include "MessageListenerInterFace.h"
+#include "MessageListenerInterface.h"
 
 #include <map> 
 
@@ -20,11 +20,13 @@
 
 class MessageParseLayer {
     std::map<std::string, MessageParser*> parsers;    
-    MessageListenerInterFace* listener;
+    MessageListenerInterface* listener;
 
     public:
-    
-    MessageParseLayer(MessageListenerInterFace* __listener);
+
+    using ParserIter = std::map<std::string, MessageParser*>::iterator;
+
+    MessageParseLayer(MessageListenerInterface* __listener);
     ~MessageParseLayer();
 
     /* Process str, emit message to upper layer */
@@ -32,8 +34,9 @@ class MessageParseLayer {
                      const std::string& p_type, const std::string& content);
 
     /* Form a message for upper layer */
-    AbstractMessage* getFromDataObject(unsigned int sender,int v_stamp, 
+    AbstractMessage* getFromDataObject(unsigned int receiver ,int v_stamp, 
                      const std::string& p_type, DataObject* content);
+    ParserIter getParser(const std::string& type);
 };
 
 #endif

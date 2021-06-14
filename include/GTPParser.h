@@ -9,8 +9,11 @@
 #include "MessageParser.h"
 
 class GTPParser : public MessageParser {
-
+    
     public:
+
+    static DataObject* gtpParser(const std::string& content);
+
     AbstractMessage* parse(unsigned int sender,int v_stamp, 
                         const std::string& content) const;
     AbstractMessage* fromDataObject(unsigned int receiver,int v_stamp,

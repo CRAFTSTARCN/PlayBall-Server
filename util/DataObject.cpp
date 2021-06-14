@@ -23,6 +23,10 @@ std::string DataElement::toString() const {
     return data;
 }
 
+DataObject* DataElement::SafeCopy() const {
+    return new DataElement(data);
+}
+
 DataSet::DataSet() = default;
 
 DataSet::~DataSet() {
@@ -46,6 +50,25 @@ std::string DataSet::toString() const {
     return res;
 }
 
+DataObject* DataSet::SafeCopy() const {
+    DataSet* n_set = new DataSet;
+    for(auto &dobj : data) {
+        n_set->push(dobj.first,dobj.second->SafeCopy());
+    }
+    return n_set;
+}
+
 void DataSet::push(std::string key, DataObject* val) {
-    data.emplace(std::move(key),val);
+    auto data_it = data.find(key);
+    if(data_it == data.end()) data.emplace(key,val);
+    else{
+        delete data_it->second;
+        data_it->second = val;
+    }
+}
+
+DataObject* DataSet::find(const std::string& key) {
+    auto data_it = data.find(key);
+    if(data_it == data.end()) return nullptr;
+    return data_it->second;
 }

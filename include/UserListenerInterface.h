@@ -14,8 +14,8 @@ class UserListenerInterface{
     UserListenerInterface();
     virtual ~UserListenerInterface() = 0;
 
-    virtual void UserCertified(int id) = 0;
-    virtual void UserQuit(int id) = 0;
+    virtual void UserCertified(unsigned int id) = 0;
+    virtual void UserQuit(unsigned int id) = 0;
 };
 
 

@@ -30,5 +30,5 @@ void ExclusiveSharedLock::ExclusiveLock() {
 }
 
 void ExclusiveSharedLock::ExclusiveUnlock() {
-    write_lock.lock();
+    write_lock.unlock();
 }

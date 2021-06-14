@@ -13,7 +13,6 @@ AbstractMessage::AbstractMessage() {
 }
 
 AbstractMessage::AbstractMessage(DataObject* __content) : content(__content) {
-    content = nullptr;
     sender_id = 0; to_id = 0;
     version_stamp = PROTOCOL_VERSION;
 }
@@ -32,5 +31,5 @@ std::string AbstractMessage::toText() const {
         .append("<protocolType>").append(this->protocolType()).append("/<protocolType>")
         .append("</head><content>")
         .append(content->toString()).append("</content></msg>");
-    
+    return text;
 }
