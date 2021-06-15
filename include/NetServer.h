@@ -21,7 +21,7 @@
 
 class NetServer {
     public:
-        using UserIter = std::map<unsigned int,UserAgent*>::iterator;
+    using UserIter = std::map<unsigned int,UserAgent*>::iterator;
 
     private:
     TCPsocket server_socket;

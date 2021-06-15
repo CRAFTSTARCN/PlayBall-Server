@@ -31,7 +31,6 @@ DataObject* GTPParser::gtpParser(const std::string& content) {
 			i++;
 			while(content[i]!='<'&&i<content.length()){
 				if(StrTool::isSkippedChar(content[i])){
-					
 					i++;
 					continue;
 				}
@@ -42,9 +41,9 @@ DataObject* GTPParser::gtpParser(const std::string& content) {
 			if(content[i]!='/') flg = 0;
 			i++;
 			if(i>=content.length()){
-						flg = 0;
-						break;
-				}
+				flg = 0;
+				break;
+			}
 			while(content[i]!='>'&&i<content.length()){
 				end += content[i];
 				i++;

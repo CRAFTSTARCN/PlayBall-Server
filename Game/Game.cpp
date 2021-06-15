@@ -48,7 +48,7 @@ void Game::rmPlayer(unsigned int id) {
         del = player_it->second;
         players.erase(player_it);
     }
-    player_access_lock.ExclusiveLock();
+    player_access_lock.ExclusiveUnlock();
     if(del) {
         if(del->in_room != -1) {
             playerLeaveRoom(id,del->in_room);
@@ -69,7 +69,7 @@ void Game::appendRoom(unsigned int owner_id) {
     if(player_it->second->in_room != -1) {
         rid = -1;
     } else {
-        rid = ++cur_room_id;
+        rid = cur_room_id++;
         player_it->second->in_room = rid;
     }
     join_lock.unlock();
@@ -177,6 +177,7 @@ void Game::join(AbstractMessage* msg) {
     auto player_it = players.find(player_id);
     if(player_it == players.end()) {
         player_access_lock.SharedUnlock();
+        room_access_lock.SharedUnlock();
         return;
     }
     player_it->second->join_mutex.lock();
@@ -189,11 +190,13 @@ void Game::join(AbstractMessage* msg) {
             ));
             room_it->second->player_access_lock.SharedLock();
             for(auto player : room_it->second->players) {
+                if(player == player_id) continue;
                 auto gtp_parser = parser.getParser("GTP");
                 server.pushMessage(gtp_parser->second->fromDataObject(
                     player,PROTOCOL_VERSION,GTPMessage::joinBroadcast(player_id)
                 ));
             }
+            room_it->second->player_access_lock.SharedUnlock();
         } else {
             server.pushMessage(parser.getFromDataObject(
                 player_id,PROTOCOL_VERSION,"GTP",GTPMessage::joinResponse(-1)
@@ -284,6 +287,7 @@ void Game::update(AbstractMessage* msg) {
     if(room_it != rooms.end() && room_it->second->owner == id) {
         room_it->second->player_access_lock.SharedLock();
         for(auto player : room_it->second->players) {
+            if(player == id) continue;
             server.pushMessage(parser.getFromDataObject(player,PROTOCOL_VERSION,"GTP",msg->content->SafeCopy()));
         }
         room_it->second->player_access_lock.SharedUnlock();
@@ -293,16 +297,21 @@ void Game::update(AbstractMessage* msg) {
 }
 
 void Game::processMessage(AbstractMessage* msg) {
+    bool run  = false;
     if(msg->content->dataType() == "SET") {
         DataObject* dobj = dynamic_cast<DataSet*>(msg->content)->find("option");
         if(dobj->dataType() == "ELEMENT") {
             std::string opt = dynamic_cast<DataElement*>(dobj)->data;
             auto func = Game::func_talbe.find(opt);
             if(func != func_talbe.end()) {
+                run = true;
                 Func f = func->second;
                 (this->*f)(msg);
             }
         }
+    }
+    if(!run) {
+        delete msg;
     }
 }
 
