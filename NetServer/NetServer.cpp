@@ -15,8 +15,7 @@ NetServer::NetServer( int cp_num, int vp_num, int tp_num, int sender_num) :
     certification_processor(cp_num),
     verification_processor(vp_num),
     task_processor(tp_num),
-    main_thread(1),sending_thread(sender_num),
-    resource_reclamation_thread(1)
+    main_thread(1),sending_thread(sender_num)
 {
     cur_user_id = 0;
     is_open.store(false);
@@ -71,7 +70,7 @@ void NetServer::shutwdon() {
         delete user_it->second;
         user_it = users.erase(user_it);
     }
-    resource_reclamation_thread.forceShutdown();
+    user_access_lock.ExclusiveUnlock();
     certification_processor.forceShutdown();
     verification_processor.deactivate();
     task_processor.deactivate();
@@ -129,6 +128,7 @@ void NetServer::Reading() {
                 if(u_itrer->second->user_status != uncertified) {
                     user_listener->UserQuit(u_itrer->second->id);
                 }
+                std::cout<<"User quit "<<u_itrer->second->id<<std::endl;
                 removed_users.push_back(u_itrer->second->id);
                 change_status = true;
             }
@@ -137,7 +137,7 @@ void NetServer::Reading() {
         }
     }
     user_access_lock.SharedUnlock();
-    if(!removed_users.empty()) resource_reclamation_thread.pushMembTask(rmUsers,this,std::move(removed_users));
+    if(!removed_users.empty()) rmUsers(removed_users);
 }
 
 void NetServer::mainLoop() {
@@ -283,15 +283,18 @@ void NetServer::messageProcessor(const std::string& msg, UserAgent* user) {
     if(vis) {
         if(vis & 1) {
             if(!user->buffer->empty()) {
-                msgs[0] = msgs[0] + *(user->buffer);
+                msgs[0] = *(user->buffer) + msgs[0];
                 if(msgs[0].rfind("</msg>") == -1) {
-                    if(msgs[0].length() < MAX_MESSAGE_LEN) {
-                        *user->buffer = msgs[0];
+                    if(msgs[0].length() <= MAX_MESSAGE_LEN) {
+                        *(user->buffer) = msgs[0];
                     }
                     ++valids;
+                } else {
+                    user->buffer->clear();
                 }
             }
-        } else if(vis >= 2) {
+        }
+        if(vis >= 2) {
             *(user->buffer) = msgs[--valide];
         }
     }

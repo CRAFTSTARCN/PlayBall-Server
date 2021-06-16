@@ -40,8 +40,6 @@ class NetServer {
 
     ThreadPool main_thread;
     ThreadPool sending_thread;
-    ThreadPool resource_reclamation_thread;
-
     ServerListenerInterface* listener;
     UserListenerInterface* user_listener;
 

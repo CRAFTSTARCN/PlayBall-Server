@@ -266,7 +266,7 @@ void Game::operate(AbstractMessage* msg) {
 }
 
 void Game::update(AbstractMessage* msg) {
-    int id = msg->sender_id;
+    unsigned int id = msg->sender_id;
     player_access_lock.SharedLock();
     auto player_it = players.find(id);
     if(player_it == players.end()) {
