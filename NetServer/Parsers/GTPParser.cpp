@@ -61,7 +61,6 @@ DataObject* GTPParser::gtpParser(const std::string& content) {
 			i++;
 		}
 	}
-	
 	if(!flg){
 		delete set;
 		return nullptr;

@@ -9,6 +9,6 @@
 
 #define MAX_USER_IN_ONCE 64
 #define SERVER_BUFF_SIZE 512
-#define MAX_MESSAGE_LEN 2048
+#define MAX_MESSAGE_LEN 4096
 
 #endif

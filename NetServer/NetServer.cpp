@@ -287,6 +287,8 @@ void NetServer::messageProcessor(const std::string& msg, UserAgent* user) {
                 if(msgs[0].rfind("</msg>") == -1) {
                     if(msgs[0].length() <= MAX_MESSAGE_LEN) {
                         *(user->buffer) = msgs[0];
+                    } else {
+                        user->buffer->clear();
                     }
                     ++valids;
                 } else {
