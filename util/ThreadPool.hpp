@@ -19,7 +19,7 @@
 
 class ThreadPool {
     public:
-        using m_task = std::function<void()>;
+    using m_task = std::function<void()>;
 
     private:    
 
