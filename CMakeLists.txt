@@ -1,3 +1,6 @@
+# github address https://github.com/CRAFTSTARCN/PlayBall-Server
+#By Ag2S(Yinchen Liu)
+
 cmake_minimum_required(VERSION 3.0.0)
 project(PlayBall-Server VERSION 0.1.0)
 
@@ -11,8 +14,8 @@ include(CPack)
 set(CMAKE_INCLUDE_CURRENT_DIR  ON)
 
 SET(CMAKE_CXX_STANDARD 17)
-SET(SDL2_DIR D:\\Sources\\SDL2_Env\\SDL_2.0.14)
-SET(SDL2_NET D:\\Sources\\SDL2_Env\\SDL2_net-2.0.1)
+SET(SDL2_DIR D:\\Sources\\SDL2_Env\\SDL_2.0.14) # switch to your sdl enviroment dir
+SET(SDL2_NET D:\\Sources\\SDL2_Env\\SDL2_net-2.0.1) # switch to your sdl_net enviroment dir
 
 include_directories(include)
 include_directories(${SDL2_DIR}/include)
